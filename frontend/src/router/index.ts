@@ -33,8 +33,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'tasks/:id',
-        name: 'TaskDetail',
-        component: () => import('@/views/TaskDetail.vue')
+        redirect: '/tasks'
       },
       {
         path: 'knowledge',
@@ -48,8 +47,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'reports',
-        name: 'Reports',
-        component: () => import('@/views/Reports.vue')
+        redirect: '/rituals'
       }
     ]
   }

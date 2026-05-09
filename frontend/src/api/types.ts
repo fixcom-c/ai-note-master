@@ -61,16 +61,6 @@ export interface Knowledge {
   updatedAt: string
 }
 
-export interface DailyReport {
-  id: number
-  date: string
-  content: string
-  taskSummary: string
-  completedTaskCount: number
-  totalTaskCount: number
-  createdAt: string
-}
-
 export interface PersonalProfile {
   id?: number
   displayName: string

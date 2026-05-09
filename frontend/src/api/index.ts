@@ -7,7 +7,6 @@ import type {
   Note,
   Task,
   Knowledge,
-  DailyReport,
   PersonalInsight,
   PersonalProfile
 } from './types'
@@ -51,11 +50,6 @@ export const knowledgeAPI = {
     tags: Array.isArray(data.tags) ? data.tags.join(',') : data.tags
   }),
   delete: (id: number) => request.delete(`/knowledge/${id}`)
-}
-
-export const reportAPI = {
-  generateDaily: () => request.post<any, DailyReport>('/reports/daily', {}),
-  getDaily: (date?: string) => request.get<any, DailyReport>(`/reports/daily${date ? '?date=' + date : ''}`)
 }
 
 export const profileAPI = {

@@ -80,7 +80,7 @@
                 @change="handleToggleTask(task)"
                 :disabled="task.status === 'completed'"
               />
-              <div class="task-info" @click="goToTaskDetail(task.id)">
+              <div class="task-info" @click="goToTaskDetail()">
                 <span class="task-title">{{ task.title }}</span>
                 <span class="task-desc" v-if="task.description">{{ task.description }}</span>
               </div>
@@ -153,7 +153,7 @@
         <el-card class="recent-knowledge-card">
           <template #header>
             <div class="card-header">
-              <span><el-icon><Reading /></el-icon> 最近知识</span>
+              <span><el-icon><Reading /></el-icon> 最近主题</span>
               <router-link to="/knowledge" class="view-all">查看全部</router-link>
             </div>
           </template>
@@ -167,7 +167,7 @@
               </div>
             </div>
           </div>
-          <el-empty v-else description="暂无知识库条目" :image-size="60" />
+          <el-empty v-else description="暂无长期主题沉淀" :image-size="60" />
         </el-card>
 
         <el-card class="quick-actions-card">
@@ -189,13 +189,9 @@
               <el-icon><Plus /></el-icon>
               新任务
             </el-button>
-            <el-button @click="handleGenerateReport">
-              <el-icon><Document /></el-icon>
-              生成日报
-            </el-button>
             <el-button @click="$router.push('/knowledge')">
               <el-icon><Collection /></el-icon>
-              添知识
+              看主题
             </el-button>
           </div>
         </el-card>
@@ -341,7 +337,7 @@ const statsData = computed(() => [
     trend: 25
   },
   {
-    label: '知识条目',
+    label: '主题沉淀',
     value: stats.knowledge,
     icon: Reading,
     color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
@@ -487,8 +483,8 @@ const handleToggleTask = async (task: Task) => {
   }
 }
 
-const goToTaskDetail = (id: number) => {
-  router.push(`/tasks/${id}`)
+const goToTaskDetail = () => {
+  router.push('/tasks')
 }
 
 const handleNewTask = () => {
@@ -517,10 +513,6 @@ const handleCreateTask = async () => {
   } catch (e) {
     ElMessage.error('创建失败')
   }
-}
-
-const handleGenerateReport = () => {
-  router.push('/reports')
 }
 
 const loadAISummary = () => {

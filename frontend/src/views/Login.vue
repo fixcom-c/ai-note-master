@@ -8,7 +8,7 @@
         <p class="eyebrow">AI NOTE MASTER</p>
         <h1>把随手记，变成可推进的行动系统。</h1>
         <p class="description">
-          记录灵感、拆解任务、沉淀知识、生成日报。这个工作空间会帮你把零散输入整理成真正可执行的节奏。
+          记录灵感、拆解任务、沉淀知识、形成日计划和周复盘。这个工作空间会帮你把零散输入整理成真正可执行的节奏。
         </p>
       </div>
 
@@ -19,7 +19,7 @@
         </div>
         <div class="metric-card">
           <strong>多视图协同</strong>
-          <span>任务、知识、日报闭环联动</span>
+          <span>任务、知识、复盘自然联动</span>
         </div>
         <div class="metric-card">
           <strong>专注今天</strong>

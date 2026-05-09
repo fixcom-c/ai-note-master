@@ -158,7 +158,7 @@
             </div>
             <div class="habit-item">
               <strong>晚上</strong>
-              <p>看完成度、补复盘、生成日报，让系统形成连续的个人上下文。</p>
+              <p>看完成度、补复盘、写下明天第一步，让系统形成连续的个人上下文。</p>
             </div>
             <div class="habit-item">
               <strong>每周</strong>

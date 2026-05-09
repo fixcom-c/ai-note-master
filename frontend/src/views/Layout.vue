@@ -84,7 +84,6 @@ import {
   Edit,
   List,
   Reading,
-  Document,
   Calendar,
   User,
   SwitchButton
@@ -100,9 +99,8 @@ const navItems = [
   { to: '/notes', label: '快速记录', description: '输入即沉淀', icon: Edit },
   { to: '/rituals', label: '每日节奏', description: '日计划与周复盘', icon: Calendar },
   { to: '/tasks', label: '任务列表', description: '推进每个待办', icon: List },
-  { to: '/knowledge', label: '知识库', description: '沉淀你的资产', icon: Reading },
-  { to: '/profile', label: '个人空间', description: '让 AI 更懂你', icon: User },
-  { to: '/reports', label: '日报', description: '追踪每天产出', icon: Document }
+  { to: '/knowledge', label: '长期主题', description: '沉淀反复出现的方向', icon: Reading },
+  { to: '/profile', label: '个人空间', description: '让 AI 更懂你', icon: User }
 ]
 
 const sectionMap: Record<string, { title: string; subtitle: string }> = {
@@ -110,9 +108,8 @@ const sectionMap: Record<string, { title: string; subtitle: string }> = {
   '/notes': { title: '快速记录', subtitle: '把想法变成结构化行动' },
   '/rituals': { title: '每日节奏', subtitle: '日计划、晚复盘、周总结的个人节奏' },
   '/tasks': { title: '任务列表', subtitle: '保持聚焦与推进' },
-  '/knowledge': { title: '知识库', subtitle: '复用经验与洞察' },
-  '/profile': { title: '个人空间', subtitle: '构建你的长期个人上下文' },
-  '/reports': { title: '智能日报', subtitle: '复盘完成与计划' }
+  '/knowledge': { title: '长期主题', subtitle: '沉淀反复出现的想法、方法与方向' },
+  '/profile': { title: '个人空间', subtitle: '构建你的长期个人上下文' }
 }
 
 const currentSection = computed(() => {

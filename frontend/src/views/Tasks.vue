@@ -121,7 +121,7 @@
                   {{ getPriorityLabel(task.priority) }}
                 </el-tag>
               </div>
-              <h3 class="card-title" @click="goToTaskDetail(task.id)">{{ task.title }}</h3>
+              <h3 class="card-title" @click="openTaskDetail(task)">{{ task.title }}</h3>
               <p class="card-desc" v-if="task.description">{{ task.description }}</p>
               <div class="card-footer">
                 <span class="card-time" v-if="task.reminderTime">
@@ -171,7 +171,7 @@
                       class="task-dot"
                       :class="getPriorityClass(task.priority)"
                       :title="task.title"
-                      @click="goToTaskDetail(task.id)"
+                      @click="openTaskDetail(task)"
                     />
                     <span v-if="day.tasks.length > 2" class="more-tasks">+{{ day.tasks.length - 2 }}</span>
                   </div>
@@ -264,7 +264,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { taskAPI } from '@/api'
 import type { Priority, Task } from '@/api/types'
@@ -273,8 +272,6 @@ import {
   Plus, List, Grid, Calendar, Clock, Search, 
   ArrowLeft, ArrowRight 
 } from '@element-plus/icons-vue'
-
-const router = useRouter()
 
 const tasks = ref<Task[]>([])
 const searchKeyword = ref('')
@@ -398,8 +395,9 @@ const handleRowClick = (row: Task) => {
   showTaskDetail.value = true
 }
 
-const goToTaskDetail = (id: number) => {
-  router.push(`/tasks/${id}`)
+const openTaskDetail = (task: Task) => {
+  taskDetail.value = task
+  showTaskDetail.value = true
 }
 
 const handleCreateTask = () => {
