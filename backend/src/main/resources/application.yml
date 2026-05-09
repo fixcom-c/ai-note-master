@@ -1,0 +1,51 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: ai-note-backend
+
+  datasource:
+    username: root
+    password: fixcom
+    url: jdbc:mysql://127.0.0.1:3306/ai_note?useSSL=false&autoReconnect=true&failOverReadOnly=false&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      max-lifetime: 60000
+      connection-timeout: 30000
+      validation-timeout: 5000
+
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: fixcom
+      database: 2
+
+jwt:
+  secret: AiNoteMasterSecretKey2024VeryLongAndSecureForJWTTokenGeneration
+  expiration: 86400000
+
+ai:
+  minimax:
+    api-key: ${MINIMAX_API_KEY:}
+    group-id: ${MINIMAX_GROUP_ID:}
+    model: MiniMax-M2.5
+    mock-mode: ${MINIMAX_MOCK_MODE:false}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.ainote: debug

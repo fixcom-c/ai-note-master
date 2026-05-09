@@ -1,0 +1,20 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
+backend/app.log
+backend/backend.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Backend
+backend/target/
+*.class
+
+# OS / temp
+*.tmp
+*.swp
