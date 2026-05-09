@@ -13,6 +13,15 @@ public class QuickNote {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(length = 120)
+    private String title;
+
+    @Column(length = 40)
+    private String category;
+
+    @Column(name = "source_type", length = 20)
+    private String sourceType;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -40,6 +49,12 @@ public class QuickNote {
     public void setId(Long id) { this.id = id; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public String getSourceType() { return sourceType; }
+    public void setSourceType(String sourceType) { this.sourceType = sourceType; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
     public LocalDateTime getCreatedAt() { return createdAt; }

@@ -22,6 +22,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Notes.vue')
       },
       {
+        path: 'rituals',
+        name: 'DailyRituals',
+        component: () => import('@/views/DailyRituals.vue')
+      },
+      {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/Tasks.vue')
@@ -35,6 +40,11 @@ const routes: RouteRecordRaw[] = [
         path: 'knowledge',
         name: 'Knowledge',
         component: () => import('@/views/Knowledge.vue')
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/PersonalSpace.vue')
       },
       {
         path: 'reports',

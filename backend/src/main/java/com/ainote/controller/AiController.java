@@ -3,6 +3,8 @@ package com.ainote.controller;
 import com.ainote.common.Result;
 import com.ainote.service.AiService;
 import com.ainote.service.AnalyzeResult;
+import com.ainote.service.PersonalInsight;
+import com.ainote.service.PersonalInsightService;
 import com.ainote.service.UserContextService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +16,14 @@ public class AiController {
 
     private final AiService aiService;
     private final UserContextService userContextService;
+    private final PersonalInsightService personalInsightService;
 
-    public AiController(AiService aiService, UserContextService userContextService) {
+    public AiController(AiService aiService,
+                        UserContextService userContextService,
+                        PersonalInsightService personalInsightService) {
         this.aiService = aiService;
         this.userContextService = userContextService;
+        this.personalInsightService = personalInsightService;
     }
 
     @PostMapping("/analyze")
@@ -28,5 +34,10 @@ public class AiController {
         }
         Long userId = userContextService.getCurrentUserId();
         return Result.success(aiService.analyze(content, userId));
+    }
+
+    @GetMapping("/personal-insight")
+    public Result<PersonalInsight> personalInsight() {
+        return Result.success(personalInsightService.generate());
     }
 }

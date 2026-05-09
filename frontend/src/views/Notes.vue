@@ -3,9 +3,14 @@
     <div class="page-header">
       <div class="header-left">
         <h1>快速记录</h1>
-        <p class="subtitle">共 {{ notes.length }} 条记录，输入后即可联动任务与知识</p>
+        <p class="subtitle">共 {{ notes.length }} 条记录，可导入 `txt / md`，把日常、资料、计划都沉淀进你的个人系统</p>
       </div>
       <div class="header-right">
+        <input ref="fileInputRef" type="file" accept=".txt,.md,.markdown,.text" class="file-input" @change="handleFileImport" />
+        <el-button @click="triggerFileImport">
+          <el-icon><Upload /></el-icon>
+          导入笔记
+        </el-button>
         <el-button @click="handleExport">
           <el-icon><Download /></el-icon>
           导出
@@ -16,19 +21,35 @@
     <div class="input-section">
       <el-card class="input-card">
         <div class="input-area">
+          <div class="meta-row">
+            <el-input v-model="noteTitle" placeholder="给这条记录起个标题（可选）" class="title-input" />
+            <el-select v-model="noteCategory" placeholder="选择分类" class="category-select">
+              <el-option label="收件箱" value="inbox" />
+              <el-option label="日计划" value="daily-plan" />
+              <el-option label="晚间复盘" value="daily-review" />
+              <el-option label="工作" value="work" />
+              <el-option label="生活" value="life" />
+              <el-option label="学习" value="learning" />
+              <el-option label="灵感" value="idea" />
+              <el-option label="资料" value="reference" />
+            </el-select>
+          </div>
           <el-input
             v-model="content"
             type="textarea"
             :rows="4"
-            placeholder="快速记录今天的工作、想法、会议内容... 输入后点击「一键 AI 分析」"
+            placeholder="快速记录今天的工作、想法、会议内容、生活事项... 输入后点击「一键 AI 分析」"
             @keydown.ctrl.enter="handleAnalyze"
           />
           <div class="input-actions">
             <span class="hint">
               <el-icon><Lightning /></el-icon>
-              AI 将自动提取任务、生成摘要，并同步沉淀到知识库
+              AI 将自动提取任务、生成摘要，并基于你的个人上下文持续给建议
             </span>
             <div class="btns">
+              <el-button :disabled="!content.trim()" @click="handleSave">
+                仅保存
+              </el-button>
               <el-button
                 type="primary"
                 size="large"
@@ -67,7 +88,10 @@
     <div class="notes-grid" v-if="filteredNotes.length > 0">
       <div class="note-card" v-for="note in filteredNotes" :key="note.id">
         <div class="card-header">
-          <span class="card-time">{{ formatDateTime(note.createdAt) }}</span>
+          <div class="card-heading">
+            <strong class="card-title">{{ note.title || '未命名记录' }}</strong>
+            <span class="card-time">{{ formatDateTime(note.createdAt) }}</span>
+          </div>
           <div class="card-actions">
             <el-tag v-if="note.hasTasks" size="small" type="success" class="task-badge">
               <el-icon><List /></el-icon>
@@ -80,6 +104,10 @@
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
+        </div>
+        <div class="card-meta">
+          <el-tag size="small" effect="plain">{{ categoryLabelMap[note.category] || note.category || '收件箱' }}</el-tag>
+          <el-tag size="small" type="info" effect="plain">{{ note.sourceType === 'imported' ? '导入' : '手动记录' }}</el-tag>
         </div>
         <p class="card-content">{{ note.content }}</p>
         <div class="card-tags" v-if="note.tags.length">
@@ -149,6 +177,7 @@ import type { AnalyzeResponse, Note, Priority, Task, Knowledge } from '@/api/typ
 import {
   MagicStick,
   Download,
+  Upload,
   Lightning,
   Search,
   Sort,
@@ -165,7 +194,11 @@ type NoteCard = Note & {
 
 const router = useRouter()
 
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const noteTitle = ref('')
 const content = ref('')
+const noteCategory = ref('inbox')
+const noteSourceType = ref<'manual' | 'imported'>('manual')
 const analyzing = ref(false)
 const showAnalyzeResult = ref(false)
 const analyzeResult = ref<AnalyzeResponse | null>(null)
@@ -174,13 +207,25 @@ const notes = ref<NoteCard[]>([])
 const searchKeyword = ref('')
 const filterType = ref('')
 const sortOrder = ref<'desc' | 'asc'>('desc')
+const categoryLabelMap: Record<string, string> = {
+  inbox: '收件箱',
+  'daily-plan': '日计划',
+  'daily-review': '晚间复盘',
+  work: '工作',
+  life: '生活',
+  learning: '学习',
+  idea: '灵感',
+  reference: '资料'
+}
 
 const filteredNotes = computed(() => {
   let result = [...notes.value]
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter((note) => note.content.toLowerCase().includes(keyword))
+    result = result.filter((note) =>
+      `${note.title} ${note.content} ${note.category}`.toLowerCase().includes(keyword)
+    )
   }
 
   if (filterType.value === 'note') {
@@ -268,7 +313,12 @@ const handleAnalyze = async () => {
     const result = await aiAPI.analyze({ content: content.value })
     analyzeResult.value = result
 
-    const note = await noteAPI.create({ content: content.value })
+    const note = await noteAPI.create({
+      title: noteTitle.value,
+      content: content.value,
+      category: noteCategory.value,
+      sourceType: noteSourceType.value
+    })
 
     for (const task of result.tasks || []) {
       await taskAPI.create({
@@ -290,12 +340,56 @@ const handleAnalyze = async () => {
     ElMessage.success(`分析完成，已创建 ${result.tasks?.length || 0} 个任务`)
     stepActive.value = 3
     showAnalyzeResult.value = true
-    content.value = ''
+    resetDraft()
     await loadNotes()
   } catch (error: any) {
     ElMessage.error(error?.message || 'AI 分析失败，请重试')
   } finally {
     analyzing.value = false
+  }
+}
+
+const handleSave = async () => {
+  if (!content.value.trim()) {
+    ElMessage.warning('请先输入内容')
+    return
+  }
+
+  try {
+    await noteAPI.create({
+      title: noteTitle.value,
+      content: content.value,
+      category: noteCategory.value,
+      sourceType: noteSourceType.value
+    })
+    ElMessage.success('已保存到个人笔记')
+    resetDraft()
+    await loadNotes()
+  } catch {
+    ElMessage.error('保存失败')
+  }
+}
+
+const triggerFileImport = () => {
+  fileInputRef.value?.click()
+}
+
+const handleFileImport = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    content.value = text
+    noteTitle.value = file.name.replace(/\.[^.]+$/, '')
+    noteCategory.value = 'reference'
+    noteSourceType.value = 'imported'
+    ElMessage.success(`已导入 ${file.name}`)
+  } catch {
+    ElMessage.error('导入失败，请重试')
+  } finally {
+    target.value = ''
   }
 }
 
@@ -321,8 +415,11 @@ const handleCopy = async (text: string) => {
 
 const handleExport = () => {
   const rows = [
-    ['内容', '标签', '任务数', '创建时间'],
+    ['标题', '分类', '来源', '内容', '标签', '任务数', '创建时间'],
     ...filteredNotes.value.map((note) => [
+      note.title,
+      categoryLabelMap[note.category] || note.category,
+      note.sourceType === 'imported' ? '导入' : '手动记录',
       note.content,
       note.tags.join(','),
       String(note.taskCount),
@@ -355,6 +452,13 @@ const viewInKnowledge = () => {
 
 const formatDateTime = (date: string) => dayjs(date).format('MM-DD HH:mm')
 
+const resetDraft = () => {
+  noteTitle.value = ''
+  content.value = ''
+  noteCategory.value = 'inbox'
+  noteSourceType.value = 'manual'
+}
+
 onMounted(loadNotes)
 </script>
 
@@ -383,6 +487,12 @@ onMounted(loadNotes)
   margin-bottom: 6px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .subtitle {
   color: var(--text-secondary);
 }
@@ -391,6 +501,17 @@ onMounted(loadNotes)
   margin-bottom: 24px;
   border-radius: 24px;
   box-shadow: var(--shadow-card);
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.file-input {
+  display: none;
 }
 
 .input-actions {
@@ -433,9 +554,28 @@ onMounted(loadNotes)
   gap: 12px;
 }
 
+.card-heading {
+  min-width: 0;
+}
+
+.card-title {
+  display: block;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
 .card-time {
+  display: block;
+  margin-top: 6px;
   color: #7b8798;
   font-size: 13px;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .card-content {
@@ -479,7 +619,9 @@ onMounted(loadNotes)
 
   .page-header,
   .filter-bar,
+  .meta-row,
   .input-actions {
+    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
   }

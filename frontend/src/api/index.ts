@@ -7,7 +7,9 @@ import type {
   Note,
   Task,
   Knowledge,
-  DailyReport
+  DailyReport,
+  PersonalInsight,
+  PersonalProfile
 } from './types'
 
 export const authAPI = {
@@ -16,12 +18,14 @@ export const authAPI = {
 }
 
 export const aiAPI = {
-  analyze: (data: AnalyzeRequest) => request.post<any, AnalyzeResponse>('/ai/analyze', data)
+  analyze: (data: AnalyzeRequest) => request.post<any, AnalyzeResponse>('/ai/analyze', data),
+  personalInsight: () => request.get<any, PersonalInsight>('/ai/personal-insight')
 }
 
 export const noteAPI = {
   list: () => request.get<any, Note[]>('/notes'),
-  create: (data: { content: string }) => request.post<any, Note>('/notes', data),
+  create: (data: { title?: string; content: string; category?: string; sourceType?: string }) => request.post<any, Note>('/notes', data),
+  update: (id: number, data: { title?: string; content: string; category?: string; sourceType?: string }) => request.put<any, Note>(`/notes/${id}`, data),
   delete: (id: number) => request.delete(`/notes/${id}`)
 }
 
@@ -52,4 +56,9 @@ export const knowledgeAPI = {
 export const reportAPI = {
   generateDaily: () => request.post<any, DailyReport>('/reports/daily', {}),
   getDaily: (date?: string) => request.get<any, DailyReport>(`/reports/daily${date ? '?date=' + date : ''}`)
+}
+
+export const profileAPI = {
+  get: () => request.get<any, PersonalProfile>('/profile'),
+  update: (data: PersonalProfile) => request.put<any, PersonalProfile>('/profile', data)
 }

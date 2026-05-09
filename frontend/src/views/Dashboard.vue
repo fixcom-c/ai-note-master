@@ -103,25 +103,45 @@
         <el-card class="ai-summary-card">
           <template #header>
             <div class="card-header">
-              <span><el-icon><DataLine /></el-icon> AI 智能摘要</span>
-              <el-button text size="small" @click="loadAISummary">
-                <el-icon><Refresh /></el-icon>
-              </el-button>
+              <span><el-icon><DataLine /></el-icon> 今日个人洞察</span>
+              <div class="summary-actions">
+                <el-button text size="small" @click="$router.push('/profile')">个人空间</el-button>
+                <el-button text size="small" @click="loadAISummary">
+                  <el-icon><Refresh /></el-icon>
+                </el-button>
+              </div>
             </div>
           </template>
-          <div class="ai-summary">
-            <div class="summary-item">
-              <div class="summary-label">本周任务完成率</div>
-              <div class="summary-value">{{ weekCompletionRate }}%</div>
-              <el-progress :percentage="weekCompletionRate" :stroke-width="8" :show-text="false" />
+          <div class="ai-summary" v-if="personalInsight">
+            <div class="summary-hero">
+              <h3>{{ personalInsight.headline }}</h3>
+              <p>{{ personalInsight.understanding }}</p>
             </div>
             <div class="summary-item">
-              <div class="summary-label">平均每日任务数</div>
-              <div class="summary-value">{{ avgDailyTasks }}</div>
+              <div class="summary-label">今日完成度</div>
+              <div class="summary-value">{{ personalInsight.todayCompleted }}/{{ personalInsight.todayPlanned || 0 }}</div>
+              <el-progress
+                :percentage="personalInsight.todayPlanned ? Math.round((personalInsight.todayCompleted / personalInsight.todayPlanned) * 100) : 0"
+                :stroke-width="8"
+                :show-text="false"
+              />
             </div>
             <div class="summary-item">
-              <div class="summary-label">热门知识标签</div>
+              <div class="summary-label">当前节奏</div>
+              <p class="summary-copy">{{ personalInsight.rhythm }}</p>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">给你的建议</div>
+              <ul class="summary-list">
+                <li v-for="item in personalInsight.suggestions.slice(0, 3)" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">最近主题</div>
               <div class="tag-cloud">
+                <el-tag v-for="tag in personalInsight.focusTags" :key="tag" size="small" type="info">
+                  {{ tag }}
+                </el-tag>
                 <el-tag v-for="tag in hotTags" :key="tag.name" size="small" :type="tag.type">
                   {{ tag.name }} ({{ tag.count }})
                 </el-tag>
@@ -160,6 +180,10 @@
             <el-button @click="$router.push('/notes')">
               <el-icon><Edit /></el-icon>
               记笔记
+            </el-button>
+            <el-button @click="$router.push('/rituals')">
+              <el-icon><Calendar /></el-icon>
+              每日节奏
             </el-button>
             <el-button @click="handleNewTask">
               <el-icon><Plus /></el-icon>
@@ -256,11 +280,11 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { taskAPI, noteAPI, knowledgeAPI, aiAPI } from '@/api'
 import { useUserStore } from '@/stores/user'
-import type { AnalyzeResponse, Knowledge, Priority, Task } from '@/api/types'
+import type { AnalyzeResponse, Knowledge, PersonalInsight, Priority, Task } from '@/api/types'
 import dayjs from 'dayjs'
-import { 
+import {
   List, Edit, DocumentAdd, MagicStick, DataLine, Reading, Lightning, 
-  Collection, Plus, TrendCharts, Refresh, Delete, Clock, CircleCheck
+  Collection, Plus, TrendCharts, Refresh, Delete, Clock, CircleCheck, Calendar
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -274,6 +298,7 @@ const showQuickCapture = ref(false)
 const showAnalyzeResult = ref(false)
 const showNewTask = ref(false)
 const analyzeResult = ref<AnalyzeResponse | null>(null)
+const personalInsight = ref<PersonalInsight | null>(null)
 
 const todayTasks = ref<Task[]>([])
 const recentKnowledge = ref<Knowledge[]>([])
@@ -332,15 +357,6 @@ const stats = reactive({
 
 const pendingTasks = computed(() => todayTasks.value.filter((task) => task.status !== 'completed'))
 
-const weekCompletionRate = computed(() => {
-  if (stats.total === 0) return 0
-  return Math.round((stats.completed / stats.total) * 100)
-})
-
-const avgDailyTasks = computed(() => {
-  return stats.total > 0 ? (stats.total / 7).toFixed(1) : '0'
-})
-
 const hotTags = computed(() => {
   const tagCounts: any = {}
   recentKnowledge.value.forEach(item => {
@@ -381,6 +397,7 @@ const loadData = async () => {
       })
       .slice(0, 5)
     recentKnowledge.value = knowledge.slice(0, 5)
+    personalInsight.value = await aiAPI.personalInsight()
   } catch (e) {
     console.error('加载数据失败', e)
   }
@@ -561,6 +578,12 @@ onMounted(() => {
   margin: 0;
 }
 
+.summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -617,6 +640,29 @@ onMounted(() => {
   font-size: 13px;
   color: #888;
   margin-top: 2px;
+}
+
+.summary-hero {
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(31, 111, 235, 0.08), rgba(19, 184, 166, 0.08));
+}
+
+.summary-hero h3 {
+  margin-bottom: 8px;
+  font-size: 19px;
+}
+
+.summary-hero p,
+.summary-copy {
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.summary-list {
+  padding-left: 18px;
+  color: var(--text-secondary);
+  line-height: 1.8;
 }
 
 .stat-trend {

@@ -1,12 +1,12 @@
 package com.ainote.controller;
 
 import com.ainote.common.Result;
+import com.ainote.dto.NoteCreateRequest;
 import com.ainote.entity.QuickNote;
 import com.ainote.service.NoteService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notes")
@@ -24,9 +24,13 @@ public class NoteController {
     }
 
     @PostMapping
-    public Result<QuickNote> create(@RequestBody Map<String, String> request) {
-        String content = request.get("content");
-        return Result.success(noteService.create(content));
+    public Result<QuickNote> create(@RequestBody NoteCreateRequest request) {
+        return Result.success(noteService.create(request));
+    }
+
+    @PutMapping("/{id}")
+    public Result<QuickNote> update(@PathVariable Long id, @RequestBody NoteCreateRequest request) {
+        return Result.success(noteService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -72,6 +72,8 @@ import {
   List,
   Reading,
   Document,
+  Calendar,
+  User,
   SwitchButton
 } from '@element-plus/icons-vue'
 
@@ -82,16 +84,20 @@ const userStore = useUserStore()
 const navItems = [
   { to: '/', label: '首页', description: '总览与快速捕捉', icon: HomeFilled },
   { to: '/notes', label: '快速记录', description: '输入即沉淀', icon: Edit },
+  { to: '/rituals', label: '每日节奏', description: '计划与复盘', icon: Calendar },
   { to: '/tasks', label: '任务列表', description: '推进每个待办', icon: List },
   { to: '/knowledge', label: '知识库', description: '沉淀你的资产', icon: Reading },
+  { to: '/profile', label: '个人空间', description: '让 AI 更懂你', icon: User },
   { to: '/reports', label: '日报', description: '追踪每天产出', icon: Document }
 ]
 
 const sectionMap: Record<string, { title: string; subtitle: string }> = {
   '/': { title: '智能工作台', subtitle: '今日任务与知识节奏' },
   '/notes': { title: '快速记录', subtitle: '把想法变成结构化行动' },
+  '/rituals': { title: '每日节奏', subtitle: '早计划，晚复盘，形成长期习惯' },
   '/tasks': { title: '任务列表', subtitle: '保持聚焦与推进' },
   '/knowledge': { title: '知识库', subtitle: '复用经验与洞察' },
+  '/profile': { title: '个人空间', subtitle: '构建你的长期个人上下文' },
   '/reports': { title: '智能日报', subtitle: '复盘完成与计划' }
 }
 

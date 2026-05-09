@@ -31,7 +31,10 @@ export interface TaskItem {
 
 export interface Note {
   id: number
+  title: string
   content: string
+  category: string
+  sourceType: string
   createdAt: string
   updatedAt: string
 }
@@ -66,4 +69,28 @@ export interface DailyReport {
   completedTaskCount: number
   totalTaskCount: number
   createdAt: string
+}
+
+export interface PersonalProfile {
+  id?: number
+  displayName: string
+  identitySummary: string
+  currentFocus: string
+  longTermGoals: string
+  workStyle: string
+  lifeAreas: string
+  aiPreference: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface PersonalInsight {
+  headline: string
+  understanding: string
+  rhythm: string
+  todayPlanned: number
+  todayCompleted: number
+  pendingTasks: number
+  suggestions: string[]
+  focusTags: string[]
 }
