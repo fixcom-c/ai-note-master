@@ -58,13 +58,26 @@
         <router-view />
       </section>
     </main>
+
+    <el-dialog
+      v-model="showLogoutDialog"
+      title="退出登录"
+      width="420px"
+      append-to-body
+      align-center
+    >
+      <p class="logout-dialog-copy">确定要退出当前账号吗？退出后需要重新登录才能继续使用你的个人工作台。</p>
+      <template #footer>
+        <el-button @click="showLogoutDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmLogout">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import {
   HomeFilled,
@@ -80,11 +93,12 @@ import {
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const showLogoutDialog = ref(false)
 
 const navItems = [
   { to: '/', label: '首页', description: '总览与快速捕捉', icon: HomeFilled },
   { to: '/notes', label: '快速记录', description: '输入即沉淀', icon: Edit },
-  { to: '/rituals', label: '每日节奏', description: '计划与复盘', icon: Calendar },
+  { to: '/rituals', label: '每日节奏', description: '日计划与周复盘', icon: Calendar },
   { to: '/tasks', label: '任务列表', description: '推进每个待办', icon: List },
   { to: '/knowledge', label: '知识库', description: '沉淀你的资产', icon: Reading },
   { to: '/profile', label: '个人空间', description: '让 AI 更懂你', icon: User },
@@ -94,7 +108,7 @@ const navItems = [
 const sectionMap: Record<string, { title: string; subtitle: string }> = {
   '/': { title: '智能工作台', subtitle: '今日任务与知识节奏' },
   '/notes': { title: '快速记录', subtitle: '把想法变成结构化行动' },
-  '/rituals': { title: '每日节奏', subtitle: '早计划，晚复盘，形成长期习惯' },
+  '/rituals': { title: '每日节奏', subtitle: '日计划、晚复盘、周总结的个人节奏' },
   '/tasks': { title: '任务列表', subtitle: '保持聚焦与推进' },
   '/knowledge': { title: '知识库', subtitle: '复用经验与洞察' },
   '/profile': { title: '个人空间', subtitle: '构建你的长期个人上下文' },
@@ -109,14 +123,13 @@ const currentSection = computed(() => {
 const userInitial = computed(() => (userStore.username || 'AI').slice(0, 1).toUpperCase())
 
 const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    userStore.logout()
-    router.push('/login')
-  })
+  showLogoutDialog.value = true
+}
+
+const confirmLogout = () => {
+  showLogoutDialog.value = false
+  userStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -313,6 +326,11 @@ const handleLogout = () => {
   height: calc(100vh - 108px);
   overflow-y: auto;
   padding: 8px 8px 24px;
+}
+
+.logout-dialog-copy {
+  color: var(--text-secondary);
+  line-height: 1.8;
 }
 
 @media (max-width: 1080px) {

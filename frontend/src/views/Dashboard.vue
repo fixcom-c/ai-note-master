@@ -183,7 +183,7 @@
             </el-button>
             <el-button @click="$router.push('/rituals')">
               <el-icon><Calendar /></el-icon>
-              每日节奏
+              日周节奏
             </el-button>
             <el-button @click="handleNewTask">
               <el-icon><Plus /></el-icon>

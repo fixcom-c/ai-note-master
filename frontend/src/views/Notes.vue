@@ -27,6 +27,7 @@
               <el-option label="收件箱" value="inbox" />
               <el-option label="日计划" value="daily-plan" />
               <el-option label="晚间复盘" value="daily-review" />
+              <el-option label="周复盘" value="weekly-review" />
               <el-option label="工作" value="work" />
               <el-option label="生活" value="life" />
               <el-option label="学习" value="learning" />
@@ -211,6 +212,7 @@ const categoryLabelMap: Record<string, string> = {
   inbox: '收件箱',
   'daily-plan': '日计划',
   'daily-review': '晚间复盘',
+  'weekly-review': '周复盘',
   work: '工作',
   life: '生活',
   learning: '学习',
