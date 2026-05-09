@@ -41,6 +41,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Knowledge.vue')
       },
       {
+        path: 'chat',
+        name: 'PersonalChat',
+        component: () => import('@/views/PersonalChat.vue')
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/PersonalSpace.vue')

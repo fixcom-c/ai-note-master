@@ -8,7 +8,9 @@ import type {
   Task,
   Knowledge,
   PersonalInsight,
-  PersonalProfile
+  PersonalProfile,
+  PersonalChatReply,
+  PersonalChatRequest
 } from './types'
 
 export const authAPI = {
@@ -18,7 +20,8 @@ export const authAPI = {
 
 export const aiAPI = {
   analyze: (data: AnalyzeRequest) => request.post<any, AnalyzeResponse>('/ai/analyze', data),
-  personalInsight: () => request.get<any, PersonalInsight>('/ai/personal-insight')
+  personalInsight: () => request.get<any, PersonalInsight>('/ai/personal-insight'),
+  personalChat: (data: PersonalChatRequest) => request.post<any, PersonalChatReply>('/ai/personal-chat', data)
 }
 
 export const noteAPI = {

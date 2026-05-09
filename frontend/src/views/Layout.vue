@@ -4,8 +4,8 @@
       <div class="brand">
         <div class="brand-badge">AI</div>
         <div>
-          <div class="brand-title">AI 行动管家</div>
-          <div class="brand-subtitle">Capture. Focus. Deliver.</div>
+          <div class="brand-title">我的 AI 笔记</div>
+          <div class="brand-subtitle">Capture. Reflect. Evolve.</div>
         </div>
       </div>
 
@@ -85,6 +85,7 @@ import {
   List,
   Reading,
   Calendar,
+  ChatDotRound,
   User,
   SwitchButton
 } from '@element-plus/icons-vue'
@@ -100,6 +101,7 @@ const navItems = [
   { to: '/rituals', label: '每日节奏', description: '日计划与周复盘', icon: Calendar },
   { to: '/tasks', label: '任务列表', description: '推进每个待办', icon: List },
   { to: '/knowledge', label: '长期主题', description: '沉淀反复出现的方向', icon: Reading },
+  { to: '/chat', label: '和我聊聊', description: '基于你的笔记、主题和计划', icon: ChatDotRound },
   { to: '/profile', label: '个人空间', description: '让 AI 更懂你', icon: User }
 ]
 
@@ -109,6 +111,7 @@ const sectionMap: Record<string, { title: string; subtitle: string }> = {
   '/rituals': { title: '每日节奏', subtitle: '日计划、晚复盘、周总结的个人节奏' },
   '/tasks': { title: '任务列表', subtitle: '保持聚焦与推进' },
   '/knowledge': { title: '长期主题', subtitle: '沉淀反复出现的想法、方法与方向' },
+  '/chat': { title: '和我的笔记聊聊', subtitle: '直接问最近的主线、节奏和下一步动作' },
   '/profile': { title: '个人空间', subtitle: '构建你的长期个人上下文' }
 }
 

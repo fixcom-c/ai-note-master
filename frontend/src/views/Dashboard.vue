@@ -189,6 +189,10 @@
               <el-icon><Plus /></el-icon>
               新任务
             </el-button>
+            <el-button @click="$router.push('/chat')">
+              <el-icon><ChatDotRound /></el-icon>
+              聊聊最近
+            </el-button>
             <el-button @click="$router.push('/knowledge')">
               <el-icon><Collection /></el-icon>
               看主题
@@ -280,7 +284,7 @@ import type { AnalyzeResponse, Knowledge, PersonalInsight, Priority, Task } from
 import dayjs from 'dayjs'
 import {
   List, Edit, DocumentAdd, MagicStick, DataLine, Reading, Lightning, 
-  Collection, Plus, TrendCharts, Refresh, Delete, Clock, CircleCheck, Calendar
+  Collection, Plus, TrendCharts, Refresh, Delete, Clock, CircleCheck, Calendar, ChatDotRound
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

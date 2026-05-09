@@ -106,6 +106,47 @@ public class MiniMaxAiServiceImpl implements AiService {
     }
 
     @Override
+    public String answerQuestion(String question, String context, Long userId) {
+        String modelName = mockMode ? "MockAI" : "MiniMax-abab6.5s";
+
+        try {
+            String answer;
+            if (mockMode || apiKey == null || apiKey.isEmpty()) {
+                answer = buildMockPersonalAnswer(question, context);
+            } else {
+                String prompt = "你是用户的个人知识助手。请只基于下面提供的个人上下文回答问题，不要编造上下文中不存在的事实。"
+                        + "如果上下文不足，要明确说“现有记录里还看不出来”。"
+                        + "回答要求：中文、直接、少空话、优先可执行，控制在 220 字以内。\n\n"
+                        + "用户问题：\n" + question + "\n\n"
+                        + "个人上下文：\n" + context;
+                answer = callMiniMaxForText(prompt);
+                if (answer == null || answer.isBlank()) {
+                    answer = "现有记录里还看不出来特别明确的答案。你可以再补一点最近笔记、周复盘或长期主题，我会更容易给出贴近你的建议。";
+                }
+            }
+
+            AiCallLog logEntry = new AiCallLog();
+            logEntry.setUserId(userId);
+            logEntry.setModel(modelName);
+            logEntry.setInputContent("问题: " + question + "\n\n上下文:\n" + context);
+            logEntry.setOutputContent(answer);
+            logEntry.setTokenCount(estimateTokens(question + context + answer));
+            logEntry.setSuccess(true);
+            aiCallLogRepository.save(logEntry);
+            return answer;
+        } catch (Exception e) {
+            AiCallLog logEntry = new AiCallLog();
+            logEntry.setUserId(userId);
+            logEntry.setModel(modelName);
+            logEntry.setInputContent("问题: " + question);
+            logEntry.setSuccess(false);
+            logEntry.setErrorMessage(e.getMessage());
+            aiCallLogRepository.save(logEntry);
+            throw new BusinessException("AI回答失败: " + e.getMessage());
+        }
+    }
+
+    @Override
     public String getModelName() {
         return mockMode ? "MockAI" : "MiniMax-abab6.5s";
     }
@@ -374,8 +415,151 @@ public class MiniMaxAiServiceImpl implements AiService {
         if (tags.isEmpty()) {
             tags.add("日常记录");
         }
-        
+
         return tags;
+    }
+
+    private String buildMockPersonalAnswer(String question, String context) {
+        String name = cleanPhrase(blankToFallback(extractField(context, "- 称呼:"), "你"));
+        String focus = cleanPhrase(blankToFallback(extractField(context, "- 当前重点:"), "把当前分散内容收敛成稳定主线"));
+        String goal = cleanPhrase(blankToFallback(extractField(context, "- 长期目标:"), "沉淀自己的长期系统"));
+        String workStyle = cleanPhrase(blankToFallback(extractField(context, "- 工作风格:"), "先记录，再整理，再推进"));
+
+        List<String> themes = extractSectionEntries(context, "最近长期主题");
+        List<String> notes = extractSectionEntries(context, "最近笔记");
+        List<String> tasks = extractSectionEntries(context, "最近任务");
+
+        String topTheme = firstMeaningfulEntry(themes, "最近的长期主题还不够清晰");
+        String secondTheme = themes.size() > 1 ? summarizeEntry(themes.get(1)) : "";
+        String topNote = firstMeaningfulEntry(notes, "最近记录还不多");
+        String pendingTask = firstMatchingEntry(tasks, "[待推进]", "当前待推进事项还比较少");
+        String completedTask = firstMatchingEntry(tasks, "[已完成]", "最近完成项还不够集中");
+
+        if (containsAny(question, "主题", "反复", "长期", "主线")) {
+            return name + "，最近反复出现的主题更像是“" + summarizeEntry(topTheme) + "”"
+                    + appendIfPresent("，其次是“" + secondTheme + "”", secondTheme)
+                    + "。它们同时和你的当前重点“" + focus + "”贴得很近，说明这不是临时兴趣，而是在形成长期投入。"
+                    + "\n\n下一步别急着继续扩张，先给最核心的 1 个主题补齐三件事：为什么重要、现在卡在哪、这周下一步是什么。";
+        }
+
+        if (containsAny(question, "聚焦", "重点", "优先", "最该")) {
+            return name + "，如果这阶段只保留一条主线，我更建议你继续围绕“" + focus + "”推进。"
+                    + "\n\n现在最值得盯住的线索，一条来自主题“" + summarizeEntry(topTheme) + "”，一条来自最近记录“" + summarizeEntry(topNote) + "”，再加上待推进事项“" + summarizeEntry(pendingTask) + "”。"
+                    + "\n\n先把它收敛成今天、这周、下一步 3 个动作，暂时不要再开新坑。";
+        }
+
+        if (containsAny(question, "下一步", "接下来", "明天", "计划", "推进")) {
+            return name + "，接下来最值得推进的不是再想更多，而是把“" + focus + "”落成一个明确动作。"
+                    + "\n\n我会优先从待推进事项“" + summarizeEntry(pendingTask) + "”开始，再参考最近笔记“" + summarizeEntry(topNote) + "”做收敛。"
+                    + "\n\n做法上保持你的节奏就好：" + workStyle + "。";
+        }
+
+        if (containsAny(question, "复盘", "总结", "回顾")) {
+            return name + "，如果把最近这段记录压成一次复盘，你的主线还是“" + focus + "”。"
+                    + "\n\n值得肯定的是你已经推进了“" + summarizeEntry(completedTask) + "”，同时最近最有代表性的记录是“" + summarizeEntry(topNote) + "”。"
+                    + "\n\n接下来最需要补的不是更多结论，而是给这条主线建立连续几天都能重复的推进动作。";
+        }
+
+        if (containsAny(question, "了解我", "我是谁", "怎么理解我", "适合我")) {
+            return name + "，从现有记录看，你不是在做一次性的工具，而是在围绕“" + goal + "”搭自己的长期个人系统。"
+                    + "\n\n你的当前重点是“" + focus + "”，而且做事方式更偏向“" + workStyle + "”。这意味着 AI 最适合帮你做的，是整理主线、提示偏航、辅助复盘，而不是替你堆更多复杂功能。";
+        }
+
+        return name + "，我现在会把你这阶段理解成“" + focus + "”。"
+                + "\n\n最近最有代表性的内容主要来自主题“" + summarizeEntry(topTheme) + "”、记录“" + summarizeEntry(topNote) + "”和待推进事项“" + summarizeEntry(pendingTask) + "”。"
+                + "\n\n如果你愿意，我下一步可以继续把这些内容整理成周复盘、优先级排序，或者一段更像你的个人画像。";
+    }
+
+    private List<String> extractSectionEntries(String context, String sectionTitle) {
+        List<String> entries = new ArrayList<>();
+        boolean inSection = false;
+
+        for (String rawLine : context.split("\\R")) {
+            String line = rawLine == null ? "" : rawLine.trim();
+            if (line.equals(sectionTitle)) {
+                inSection = true;
+                continue;
+            }
+            if (!inSection) {
+                continue;
+            }
+            if (line.isBlank()) {
+                break;
+            }
+            if (Character.isDigit(line.charAt(0))) {
+                int dotIndex = line.indexOf('.');
+                entries.add(dotIndex >= 0 ? line.substring(dotIndex + 1).trim() : line);
+            }
+        }
+
+        return entries;
+    }
+
+    private String firstMeaningfulEntry(List<String> entries, String fallback) {
+        return entries.isEmpty() ? fallback : summarizeEntry(entries.get(0));
+    }
+
+    private String firstMatchingEntry(List<String> entries, String marker, String fallback) {
+        for (String entry : entries) {
+            if (entry.contains(marker)) {
+                return summarizeEntry(entry);
+            }
+        }
+        return entries.isEmpty() ? fallback : summarizeEntry(entries.get(0));
+    }
+
+    private String summarizeEntry(String entry) {
+        if (entry == null || entry.isBlank()) {
+            return "";
+        }
+
+        String summary = entry.trim();
+        if (summary.startsWith("[待推进]")) {
+            summary = summary.substring(5).trim();
+        } else if (summary.startsWith("[已完成]")) {
+            summary = summary.substring(5).trim();
+        }
+
+        int separatorIndex = summary.indexOf(" | ");
+        if (separatorIndex > 0) {
+            summary = summary.substring(0, separatorIndex).trim();
+        }
+
+        return summary.isBlank() ? entry.trim() : summary;
+    }
+
+    private String extractField(String context, String prefix) {
+        for (String rawLine : context.split("\\R")) {
+            String line = rawLine == null ? "" : rawLine.trim();
+            if (line.startsWith(prefix)) {
+                return line.substring(prefix.length()).trim();
+            }
+        }
+        return "";
+    }
+
+    private boolean containsAny(String text, String... keywords) {
+        for (String keyword : keywords) {
+            if (text.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String blankToFallback(String value, String fallback) {
+        return value == null || value.isBlank() || "暂无".equals(value) || "无".equals(value) ? fallback : value;
+    }
+
+    private String appendIfPresent(String value, String condition) {
+        return condition == null || condition.isBlank() ? "" : value;
+    }
+
+    private String cleanPhrase(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim().replaceAll("[。！？!?,，；;：:]+$", "");
     }
 
     private int estimateTokens(String content) {

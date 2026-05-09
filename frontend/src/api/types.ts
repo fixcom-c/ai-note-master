@@ -84,3 +84,21 @@ export interface PersonalInsight {
   suggestions: string[]
   focusTags: string[]
 }
+
+export interface PersonalChatRequest {
+  question: string
+}
+
+export interface PersonalChatReference {
+  type: string
+  title: string
+  summary: string
+}
+
+export interface PersonalChatReply {
+  answer: string
+  contextSummary: string
+  model: string
+  references: PersonalChatReference[]
+  suggestions: string[]
+}

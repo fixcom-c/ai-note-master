@@ -161,7 +161,7 @@
       </div>
       <template #footer>
         <el-button @click="viewInTasks">查看任务列表</el-button>
-        <el-button @click="viewInKnowledge">查看知识库</el-button>
+        <el-button @click="viewInKnowledge">查看长期主题</el-button>
         <el-button type="primary" @click="showAnalyzeResult = false">完成</el-button>
       </template>
     </el-dialog>
